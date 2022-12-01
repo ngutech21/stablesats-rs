@@ -1,6 +1,7 @@
 use anyhow::Context;
 use clap::{Parser, Subcommand};
 use rust_decimal::Decimal;
+use shared::exchanges_config::ExchangeConfigAll;
 use std::{collections::HashMap, path::PathBuf};
 use url::Url;
 
@@ -191,9 +192,9 @@ async fn run_cmd(
         let pubsub = pubsub.clone();
         let (snd, recv) = futures::channel::mpsc::unbounded();
         checkers.insert("hedging", snd);
-        let exchanges = exchanges.clone();
+        let ExchangeConfigAll { okex: okex_cfg, .. } = exchanges;
 
-        if let Some(okex_cfg) = exchanges.okex {
+        if let Some(okex_cfg) = okex_cfg {
             handles.push(tokio::spawn(async move {
                 let _ = hedging_send.try_send(
                     hedging::run(recv, hedging.config, okex_cfg.config, pubsub)
