@@ -9,7 +9,7 @@ pub struct ExchangeConfigAll {
 }
 
 impl ExchangeConfigAll {
-    pub fn is_valid(&self) -> bool {
+    pub fn is_at_least_one_exchange_configured(&self) -> bool {
         self.okex.is_some() || self.kollider.is_some()
     }
 }
@@ -51,6 +51,33 @@ mod test_super {
         let config = ExchangeConfigAll::default();
         assert!(config.okex.is_none());
         assert!(config.kollider.is_none());
+    }
+
+    #[test]
+    fn test_is_at_least_one_exchange_configured() {
+        let config_only_okex = ExchangeConfigAll {
+            okex: Some(ExchangeConfig {
+                weight: dec!(0.8),
+                config: OkexConfig::default(),
+            }),
+            kollider: None,
+        };
+        assert!(config_only_okex.is_at_least_one_exchange_configured());
+
+        let config_only_kollider = ExchangeConfigAll {
+            okex: None,
+            kollider: Some(ExchangeConfig {
+                weight: dec!(0.8),
+                config: KolliderConfig::default(),
+            }),
+        };
+        assert!(config_only_kollider.is_at_least_one_exchange_configured());
+
+        let config_no_exchanges = ExchangeConfigAll {
+            okex: None,
+            kollider: None,
+        };
+        assert!(!config_no_exchanges.is_at_least_one_exchange_configured());
     }
 
     #[test]

@@ -121,7 +121,7 @@ async fn run_cmd(
         exchanges,
     }: Config,
 ) -> anyhow::Result<()> {
-    if !exchanges.is_valid() {
+    if !exchanges.is_at_least_one_exchange_configured() {
         Err(anyhow::anyhow!(
             "Invalid exchanges config - at least one exchange has to be configured"
         ))?;
