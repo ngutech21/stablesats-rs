@@ -25,6 +25,8 @@ use crate::{
 };
 pub use error::*;
 
+const EXCHANGE_CACHE_STALE_AFTER: i64 = 30;
+
 pub struct PriceApp {
     price_mixer: PriceMixer,
     fee_calculator: FeeCalculator,
@@ -43,7 +45,8 @@ impl PriceApp {
             HashMap::new();
 
         if let Some(config) = exchanges_cfg.kollider.as_ref() {
-            let kollider_price_cache = ExchangeTickCache::new(Duration::seconds(30));
+            let kollider_price_cache =
+                ExchangeTickCache::new(Duration::seconds(EXCHANGE_CACHE_STALE_AFTER));
             Self::subscribe_kollider(
                 pubsub_cfg.clone(),
                 health_check_trigger.clone(),
@@ -57,7 +60,8 @@ impl PriceApp {
         }
 
         if let Some(config) = exchanges_cfg.okex.as_ref() {
-            let okex_price_cache = ExchangeTickCache::new(Duration::seconds(30));
+            let okex_price_cache =
+                ExchangeTickCache::new(Duration::seconds(EXCHANGE_CACHE_STALE_AFTER));
             Self::subscribe_okex(
                 pubsub_cfg.clone(),
                 health_check_trigger.clone(),
