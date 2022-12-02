@@ -272,6 +272,6 @@ impl PriceApp {
             .price_mixer
             .apply(|p| *p.mid_price_of_one_sat().amount())
             .await?;
-        Ok(f64::try_from(cents_per_sat)?)
+        Ok(f64::try_from(Sats::from_decimal(cents_per_sat))?)
     }
 }

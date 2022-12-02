@@ -12,7 +12,4 @@ pub enum PriceAppError {
     SubscriberError(#[from] SubscriberError),
     #[error("PriceAppError - ExchangePriceCacheError: {0}")]
     ExchangePriceCacheError(#[from] ExchangePriceCacheError),
-
-    #[error("PriceAppError - DecimalError: {0}")]
-    DecimalError(#[from] rust_decimal::Error),
 }
