@@ -1,10 +1,11 @@
 use async_trait::async_trait;
 use rust_decimal::Decimal;
 use thiserror::Error;
+use tracing::Span;
 
 use crate::currency::VolumePicker;
 use shared::time::*;
-use std::collections::HashMap;
+use std::{collections::HashMap, vec};
 
 use super::currency::*;
 
@@ -36,12 +37,13 @@ impl PriceMixer {
     ) -> Result<Decimal, ExchangePriceCacheError> {
         let mut total = Decimal::ZERO;
         let mut total_weights = Decimal::ZERO;
-        let mut prev_error: Option<ExchangePriceCacheError> = None;
+        let mut errors = vec![];
         for (provider, weight) in self.providers.values() {
             let side_picker = match provider.latest().await {
                 Ok(side_picker) => side_picker,
                 Err(err) => {
-                    prev_error = Some(err);
+                    log_error(&err);
+                    errors.push(err);
                     continue;
                 }
             };
@@ -49,12 +51,21 @@ impl PriceMixer {
             total += f(&side_picker) * weight;
         }
 
-        if let Some(prev_error) = prev_error {
-            Err(prev_error)
+        if errors.len() == self.providers.values().len() {
+            Err(errors.pop().expect("Could not find error"))
         } else {
             Ok(total / total_weights)
         }
     }
+}
+
+fn log_error(error: &ExchangePriceCacheError) {
+    Span::current().record("error", &tracing::field::display("true"));
+    Span::current().record("error.message", &tracing::field::display(error));
+    Span::current().record(
+        "error.level",
+        &tracing::field::display(tracing::Level::WARN),
+    );
 }
 
 #[derive(Error, Debug)]
